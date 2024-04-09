@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="portal_my_home" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="url">/my/requests</t>
+                <t t-set="title">Solicitudes</t>
+                <t t-set="placeholder_count" t-value="'requests_quantity'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_breadcrumbs" inherit_id="portal.portal_breadcrumbs" priority="100">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'request_list_view'" class="breadcrumb-item">Solicitudes</li>
+            <li t-if="page_name == 'request_form_view'" class="breadcrumb-item">
+                <a href="/my/requests">Solicitudes</a> / <t t-out="current_request.partner_id.name"/>
+            </li>
+            <li t-if="page_name == 'catalog_form_view'" class="breadcrumb-item">Catálogo de Solicitudes</li>
+        </xpath>
+    </template>
+
+    <template id="request_list_view">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Solicitudes</t>
+                <div class="ms-lg-2" t-if="request.env.user">
+                    <a class="btn btn-primary btn-sm" href="/my/requests/catalogs">
+                        <i class="fa fa-upload"/> Crear solicitud
+                    </a>
+                </div>
+            </t>
+            <t t-call="portal.portal_table">
+                <div class="alert alert-success" roler="alert" t-if="success_message">
+                    <t t-out="success_message"/>
+                </div>
+                <thead>
+                    <tr class="text-center">
+                        <th>ID</th>
+                        <th>ADMISIÓN</th>
+                        <th>ALUMNO</th>
+                        <th>CURSO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="my_requests" t-as="my_request">
+                        <tr class="text-center">
+                            <td>
+                                <t t-out="my_request.id"/>
+                            </td>
+                            <td>
+                                <a t-attf-href="/my/requests/#{my_request.id}">
+                                    <t t-out="my_request.op_admission_id.application_number"/>
+                                </a>
+                            </td>
+                            <td>
+                                <t t-out="my_request.partner_id.name"/>
+                            </td>
+                            <td>
+                                <t t-out="my_request.course_id.name"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <template id="request_form_view" inherit_id="portal.portal_sidebar">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-if="page_name == 'request_form_view'">
+                <section style="background-color: #eee;">
+                    <div class="container py-5 px-5">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <p class="mb-0">ID</p>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <p class="text-muted mb-0"><t t-out="current_request.id"/></p>
+                                            </div>
+                                        </div>
+                                        <hr/>
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <p class="mb-0">ADMISIÓN</p>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <p class="text-muted mb-0"><t t-out="current_request.op_admission_id.application_number"/></p>
+                                            </div>
+                                        </div>
+                                        <hr/>
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <p class="mb-0">ALUMNO</p>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <p class="text-muted mb-0"><t t-out="current_request.partner_id.name"/></p>
+                                            </div>
+                                        </div>
+                                        <hr/>
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <p class="mb-0">CURSO</p>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <p class="text-muted mb-0"><t t-out="current_request.course_id.name"/></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="catalog_form_view">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_table">
+                <form action="/my/requests/new_request" method="get">
+                    <section style="background-color: #eee;">
+                        <div class="container p-4">
+                            <div class="form-group row p-3">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <label class="col-sm-4 col-form-label" for="catalogs">Elige un Catálogo</label>
+                                <div class="col-sm-8">
+                                    <select name="catalogs" id="catalogs" class="form-control">
+                                        <t t-foreach="catalog_requests" t-as="catalog">
+                                            <option t-att-value="catalog.id">
+                                                <t t-out="catalog.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row p-3">
+                                <label class="col-sm-4 col-form-label" for="admissions">Elige una Admisión</label>
+                                <div class="col-sm-8">
+                                    <select name="admissions" id="admissions" class="form-control">
+                                        <t t-foreach="admissions" t-as="admission">
+                                            <option t-att-value="admission.id">
+                                                <t t-out="admission.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row p-3">
+                                <div class="col-sm-10">
+                                    <button type="submit" class="btn btn-primary">Siguiente</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </form>
+            </t>
+        </t>
+    </template>
+
+    <template id="new_request_form_view">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_table">
+                <form method="post" enctype="multipart/form-data">
+                    <section style="background-color: #eee;">
+                        <div class="container p-4">
+                            <div class="form-group row p-3">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <label class="col-sm-3 col-form-label">
+                                    Admisión
+                                </label>
+                                <div class="col-sm-3">
+                                    <t t-out="admission.name"/>
+                                </div>
+                                <label class="col-sm-3 col-form-label" for="course_id">
+                                    Curso
+                                </label>
+                                <div class="col-sm-3">
+                                    <t t-out="course_id.name"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group row p-3">
+                                <label class="col-sm-3 col-form-label">
+                                    Partner
+                                </label>
+                                <div class="col-sm-3">
+                                    <t t-out="partner_id.name"/>
+                                </div>
+                                <label class="col-sm-3 col-form-label">
+                                    Número de aplicación
+                                </label>
+                                <div class="col-sm-3">
+                                    <t t-out="application_number"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group row p-3">
+                                <label class="col-sm-3 col-form-label">
+                                    Batch
+                                </label>
+                                <div class="col-sm-3">
+                                    <t t-out="batch_id.name"/>
+                                </div>
+                                <label class="col-sm-3 col-form-label">
+                                    Catálogo de solicitudes
+                                </label>
+                                <div class="col-sm-3">
+                                    <t t-out="catalog.name"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group row p-3">
+                                <t t-foreach="catalog_request_line_ids" t-as="line">
+                                    <label for="upload_document" class="col-sm-3 col-form-label my-auto">
+                                        <t t-out="line.document"/>
+                                    </label>
+                                    <div class="col-sm-3 my-auto">
+                                        <input name="upload_document"
+                                                id="upload_document"
+                                                type="file"
+                                                class="form-control file"
+                                                data-show-upload="true"
+                                                data-show-caption="true"
+                                                data-show-preview="true"/>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div class="form-group row">
+                                <div class="col-sm-4"/>
+                                <div class="col-sm-8">
+                                    <button id="btn_upload_docs" class="btn btn-primary mt16">
+                                        Crear Solicitud
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </form>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+isep_requests.access_request,access_request,isep_requests.model_request,base.group_user,1,1,1,1
+isep_requests.portal_access_request,portal_access_request,isep_requests.model_request,base.group_portal,1,1,1,1
+isep_requests.access_request_line,access_request_line,isep_requests.model_request_line,base.group_user,1,1,1,1
+isep_requests.access_catalog_request,access_catalog_request,isep_requests.model_catalog_request,base.group_user,1,1,1,1
+isep_requests.access_catalog_request_line,access_catalog_request_line,isep_requests.model_catalog_request_line,base.group_user,1,1,1,1
+

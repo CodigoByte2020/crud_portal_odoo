@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="request_view_tree" model="ir.ui.view">
+        <field name="name">request.view.tree</field>
+        <field name="model">request</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="id"/>
+                <field name="op_admission_id"/>
+                <field name="partner_id"/>
+                <field name="batch_id"/>
+                <field name="course_id"/>
+                <field name="application_number"/>
+                <field name="catalog_request_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="request_view_form" model="ir.ui.view">
+        <field name="name">request.view.form</field>
+        <field name="model">request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_in_progress" type="object" string="Confirmar" class="btn btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'received')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,in_progress,finalized"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="op_admission_id"/>
+                            <field name="partner_id"/>
+                            <field name="batch_id"/>
+                        </group>
+                        <group>
+                            <field name="course_id"/>
+                            <field name="application_number"/>
+                            <field name="catalog_request_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Adjuntos">
+                            <field name="request_line_ids" context="{'request_id': id}">
+                                <tree editable="bottom">
+                                    <field name="request_id" invisible="1"/>
+                                    <field name="id"/>
+                                    <field name="document"/>
+                                    <field name="filename"/>
+                                    <field name="file" filename="filename"/>
+                                </tree>
+                            </field>
+                            <field name="description" nolabel="1" placeholder="Descripción ..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="request_action" model="ir.actions.act_window">
+        <field name="name">Solicitudes</field>
+        <field name="res_model">request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="request_menu"
+              name="Solicitudes"
+              action="request_action"
+              sequence="10"
+              parent="registers_menu"/>
+</odoo>

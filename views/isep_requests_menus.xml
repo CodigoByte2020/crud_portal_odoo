@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem id="isep_requests_menu_root"
+              name="Solicitudes"
+              web_icon="isep_requests,static/description/icon.png"
+              sequence="10"
+    />
+        <menuitem id="registers_menu"
+                  name="Registros"
+                  parent="isep_requests_menu_root"
+                  sequence="10"
+        />
+</odoo>
