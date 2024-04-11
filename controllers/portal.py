@@ -165,19 +165,7 @@ class CustomerPortal(CustomerPortal):
                     'filename': file.filename,
                     'file': base64.encodebytes(read_file)
                 })])
-
             new_request.write({'request_line_ids': request_line_ids})
-
-            for line in new_request.request_line_ids:
-                attachment_values = {
-                    'name': line.filename,
-                    'res_model': 'request.line',
-                    'res_id': line.id,
-                    'res_field': line.file,
-                    'datas': line.file
-                }
-                request.env['ir.attachment'].sudo().create(attachment_values)
-
             success_message = 'Solicitud registrada con éxito'
             url = f'/my/requests?success_message={success_message}'
 
