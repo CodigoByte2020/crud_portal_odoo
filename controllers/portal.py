@@ -1,6 +1,12 @@
+import base64
+import logging
+
 from odoo import http
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager
 from odoo.http import request
+from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class CustomerPortal(CustomerPortal):
@@ -18,7 +24,7 @@ class CustomerPortal(CustomerPortal):
 
     @http.route(['/my/requests', '/my/requests/page/<int:page>'], type='http', website=True)
     def request_list_view(self, page=1, **kwargs):
-        step = 5
+        step = 10
         request_model = request.env['request'].sudo()
         user_id = request.env.uid
         current_user = request.env['res.users'].sudo().browse(user_id)
@@ -35,11 +41,13 @@ class CustomerPortal(CustomerPortal):
         )
         my_requests = request_model.search(domain, limit=step, offset=page_detail['offset'])
         success_message = request.params.get('success_message', False)
+        error_message = request.params.get('error_message', False)
         values = {
             'my_requests': my_requests,
             'page_name': 'request_list_view',
             'pager': page_detail,
-            'success_message': success_message
+            'success_message': success_message,
+            'error_message': error_message
         }
         return request.render('isep_requests.request_list_view', values)
 
@@ -66,7 +74,13 @@ class CustomerPortal(CustomerPortal):
     @http.route('/my/requests/catalogs', type='http', methods=['GET'], auth='public', website=True)
     def catalog_form_view(self, **kwargs):
         catalog_requests = request.env['catalog.request'].sudo().search([])
-        admissions = request.env['op.admission'].sudo().search([])
+        user_id = request.env.uid
+        current_user = request.env['res.users'].sudo().browse(user_id)
+        domain = [
+            ('partner_id', '=', current_user.partner_id.id),
+            ('state', '=', 'done')
+        ]
+        admissions = request.env['op.admission'].sudo().search(domain)
         values = {
             'page_name': 'catalog_form_view',
             'catalog_requests': catalog_requests,
@@ -104,7 +118,6 @@ class CustomerPortal(CustomerPortal):
                 })
 
         elif request.httprequest.method == 'POST':
-            success_message = 'Solicitud registrada con éxito'
             values_request = {}
             if kwargs.get('catalogs', False):
                 catalog_request_id = catalog_request_model.browse(int(kwargs['catalogs']))
@@ -115,7 +128,68 @@ class CustomerPortal(CustomerPortal):
                     'op_admission_id': op_admission_id.id,
                     'partner_id': op_admission_id.partner_id.id
                 })
-            request.env['request'].sudo().create(values_request)  # TODO: FALTA VER QUE SE CREEN LOS ATTACHMENTS
-            return request.redirect(f'/my/requests?success_message={success_message}')
+            url = self.create_request(kwargs)
+            return request.redirect(url)
 
         return request.render('isep_requests.new_request_form_view', values)
+
+    def create_request(self, kwargs):
+        request_model = request.env['request'].sudo()
+        op_admission_model = request.env['op.admission'].sudo()
+        request_line_ids_documents = [value for key, value in kwargs.items() if key.startswith('upload_document_')]
+        request_line_ids = []
+        catalog_request_id = 0
+        op_admission_id = 0
+        partner_id = 0
+        url = ''
+
+        if kwargs.get('catalogs', False):
+            catalog_request_id = int(kwargs['catalogs'])
+        if kwargs.get('admissions', False):
+            op_admission = op_admission_model.browse(int(kwargs['admissions']))
+            op_admission_id = op_admission.id
+            partner_id = op_admission.partner_id.id
+
+        try:
+            new_request = request_model.create({
+                'catalog_request_id': catalog_request_id,
+                'op_admission_id': op_admission_id,
+                'partner_id': partner_id
+            })
+            for file in request_line_ids_documents:
+                stream = file.stream
+                read_file = stream.read()
+                request_line_ids.extend([(0, 0, {
+                    'request_id': new_request.id,
+                    'document': file.name.split('upload_document_')[1],
+                    'filename': file.filename,
+                    'file': base64.encodebytes(read_file)
+                })])
+
+            new_request.write({'request_line_ids': request_line_ids})
+
+            for line in new_request.request_line_ids:
+                attachment_values = {
+                    'name': line.filename,
+                    'res_model': 'request.line',
+                    'res_id': line.id,
+                    'res_field': line.file,
+                    'datas': line.file
+                }
+                request.env['ir.attachment'].sudo().create(attachment_values)
+
+            success_message = 'Solicitud registrada con éxito'
+            url = f'/my/requests?success_message={success_message}'
+
+        except ValidationError as exception:
+            _logger.error(f'******************* Valores de campos incorrectos. Razón: {exception} *******************')
+            error_message = f'Valores de campos incorrectos. Razón: {exception}'
+            url = f'/my/requests?error_message={error_message}'
+
+        except Exception as exception:
+            _logger.error(f'******** El archivo subido no es válido o es demasiado grande. Razón: {exception} ********')
+            error_message = f'El archivo subido no es válido o es demasiado grande. Razón: {exception}'
+            url = f'/my/requests?error_message={error_message}'
+
+        finally:
+            return url

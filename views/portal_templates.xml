@@ -35,6 +35,9 @@
                 <div class="alert alert-success" roler="alert" t-if="success_message">
                     <t t-out="success_message"/>
                 </div>
+                <div class="alert alert-danger" role="alert" t-if="error_message">
+                    <t t-out="error_message"/>
+                </div>
                 <thead>
                     <tr class="text-center">
                         <th>ID</th>
@@ -70,7 +73,7 @@
     <template id="request_form_view" inherit_id="portal.portal_sidebar">
         <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
             <t t-if="page_name == 'request_form_view'">
-                <section style="background-color: #eee;">
+                <section class="bg-white">
                     <div class="container py-5 px-5">
                         <div class="row">
                             <div class="col-lg-12">
@@ -90,7 +93,9 @@
                                                 <p class="mb-0">ADMISIÓN</p>
                                             </div>
                                             <div class="col-sm-9">
-                                                <p class="text-muted mb-0"><t t-out="current_request.op_admission_id.application_number"/></p>
+                                                <p class="text-muted mb-0">
+                                                    <t t-out="current_request.op_admission_id.application_number"/>
+                                                </p>
                                             </div>
                                         </div>
                                         <hr/>
@@ -99,7 +104,9 @@
                                                 <p class="mb-0">ALUMNO</p>
                                             </div>
                                             <div class="col-sm-9">
-                                                <p class="text-muted mb-0"><t t-out="current_request.partner_id.name"/></p>
+                                                <p class="text-muted mb-0">
+                                                    <t t-out="current_request.partner_id.name"/>
+                                                </p>
                                             </div>
                                         </div>
                                         <hr/>
@@ -108,7 +115,9 @@
                                                 <p class="mb-0">CURSO</p>
                                             </div>
                                             <div class="col-sm-9">
-                                                <p class="text-muted mb-0"><t t-out="current_request.course_id.name"/></p>
+                                                <p class="text-muted mb-0">
+                                                    <t t-out="current_request.course_id.name"/>
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -125,7 +134,7 @@
         <t t-call="portal.portal_layout">
             <t t-call="portal.portal_table">
                 <form action="/my/requests/new_request" method="get">
-                    <section style="background-color: #eee;">
+                    <section class="bg-white">
                         <div class="container p-4">
                             <div class="form-group row p-3">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -146,7 +155,8 @@
                                     <select name="admissions" id="admissions" class="form-control">
                                         <t t-foreach="admissions" t-as="admission">
                                             <option t-att-value="admission.id">
-                                                <t t-out="admission.name"/>
+                                                <t t-out="admission.name"/> / <t t-out="admission.application_number"/>
+                                                - <t t-out="admission.course_id.name"/>
                                             </option>
                                         </t>
                                     </select>
@@ -154,7 +164,9 @@
                             </div>
                             <div class="form-group row p-3">
                                 <div class="col-sm-10">
-                                    <button type="submit" class="btn btn-primary">Siguiente</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        Siguiente
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +180,7 @@
         <t t-call="portal.portal_layout">
             <t t-call="portal.portal_table">
                 <form method="post" enctype="multipart/form-data">
-                    <section style="background-color: #eee;">
+                    <section class="bg-white">
                         <div class="container p-4">
                             <div class="form-group row p-3">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -176,7 +188,8 @@
                                     Admisión
                                 </label>
                                 <div class="col-sm-3">
-                                    <t t-out="admission.name"/>
+                                    <t t-out="admission.name"/> / <t t-out="admission.application_number"/> -
+                                    <t t-out="admission.course_id.name"/>
                                 </div>
                                 <label class="col-sm-3 col-form-label" for="course_id">
                                     Curso
@@ -218,22 +231,23 @@
 
                             <div class="form-group row p-3">
                                 <t t-foreach="catalog_request_line_ids" t-as="line">
-                                    <label for="upload_document" class="col-sm-3 col-form-label my-auto">
+                                    <label t-att-for="'upload_document_' + str(line.id)"
+                                           class="col-sm-3 col-form-label my-auto">
                                         <t t-out="line.document"/>
                                     </label>
                                     <div class="col-sm-3 my-auto">
-                                        <input name="upload_document"
-                                                id="upload_document"
-                                                type="file"
-                                                class="form-control file"
-                                                data-show-upload="true"
-                                                data-show-caption="true"
-                                                data-show-preview="true"/>
+                                        <input t-att-name="'upload_document_' + str(line.document)"
+                                               t-att-id="'upload_document_' + str(line.id)"
+                                               type="file"
+                                               class="form-control file"
+                                               data-show-upload="true"
+                                               data-show-caption="true"
+                                               data-show-preview="true"/>
                                     </div>
                                 </t>
                             </div>
 
-                            <div class="form-group row">
+                            <div class="form-group row p-3">
                                 <div class="col-sm-4"/>
                                 <div class="col-sm-8">
                                     <button id="btn_upload_docs" class="btn btn-primary mt16">
