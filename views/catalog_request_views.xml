@@ -41,15 +41,15 @@
         </field>
     </record>
 
-    <record id="catalog_request_action" model="ir.actions.act_window">
-        <field name="name">Catálogo de Solicitudes</field>
+    <record id="list_of_processing_requests" model="ir.actions.act_window">
+        <field name="name">Lista de Solicitudes de trámite</field>
         <field name="res_model">catalog.request</field>
         <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="catalog_request_menu"
-              name="Catálogo de Solicitudes"
-              action="catalog_request_action"
+    <menuitem id="list_of_processing_menu"
+              name="Lista de Solicitudes de trámite"
+              action="list_of_processing_requests"
               sequence="20"
               parent="registers_menu"/>
 </odoo>

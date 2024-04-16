@@ -44,6 +44,7 @@
                         <th>ADMISIÓN</th>
                         <th>ALUMNO</th>
                         <th>CURSO</th>
+                        <th>ESTADO</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,6 +64,9 @@
                             <td>
                                 <t t-out="my_request.course_id.name"/>
                             </td>
+                            <td>
+                                <t t-out="dict(my_request._fields['state'].selection).get(my_request.state, '')"/>
+                            </td>
                         </tr>
                     </t>
                 </tbody>
@@ -73,9 +77,17 @@
     <template id="request_form_view" inherit_id="portal.portal_sidebar">
         <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
             <t t-if="page_name == 'request_form_view'">
-                <section class="bg-white">
-                    <div class="container py-5 px-5">
-                        <div class="row">
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <section class="bg-white">
+                        <div class="container">
+    <!--                    <div class="row">-->
+                            <div t-if="current_request.request_line_ids.filtered(lambda x: x.state == 'observed')" class="row m-2">
+                                <div class="col-lg-9"/>
+                                <div class="col-lg-3">
+                                    <button class="btn btn-primary">Actualizar adjunto(s)</button>
+                                </div>
+                            </div>
                             <div class="col-lg-12">
                                 <div class="card mb-4">
                                     <div class="card-body">
@@ -120,12 +132,67 @@
                                                 </p>
                                             </div>
                                         </div>
+                                        <hr/>
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <p class="mb-0">ESTADO</p>
+                                            </div>
+                                            <div class="col-sm-9">
+                                                <p class="text-muted mb-0">
+                                                    <t t-out="dict(current_request._fields['state'].selection).get(current_request.state, '')"/>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <hr/>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">ID</th>
+                                                    <th scope="col">Documento</th>
+                                                    <th scope="col">Nombre de archivo</th>
+<!--                                                    <th scope="col">Archivo</th>-->
+                                                    <th scope="col">Estado</th>
+                                                    <th scope="col">Comentario</th>
+                                                    <th scope="col">Actualizar archivo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="current_request.request_line_ids" t-as="line">
+                                                    <tr>
+                                                        <th scope="row"><t t-out="line.id"/></th>
+                                                        <td><t t-out="line.document"/></td>
+                                                        <td><t t-out="line.filename"/></td>
+                                                        <td>
+                                                            <t t-set="state" t-value="dict(line._fields['state'].selection).get(line.state, '')"/>
+                                                            <span t-att-class="'rounded-pill text-white p-2 %s' % (state == 'En espera' and 'bg-info' or state == 'Aceptado' and 'bg-success' or state == 'Observado' and 'bg-warning' or '')" t-esc="state"/>
+                                                        </td>
+                                                        <td><t t-out="line.comment"/></td>
+                                                        <td>
+                                                            <input t-if="line.state == 'observed'"
+                                                                   t-att-id="'update_document_' + str(line.id)"
+                                                                   t-att-name="'update_document_' + str(line.id)"
+                                                                   type="file"
+                                                                   class="form-control file"
+                                                                   data-show-upload="true"
+                                                                   data-show-caption="true"
+                                                                   data-show-preview="true"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
+    <!--                    </div>-->
                         </div>
-                    </div>
-                </section>
+                        <div class="container px-5">
+                            <t t-call="portal.message_thread">
+                                <t t-set="object" t-value="current_request"/>
+                            </t>
+                        </div>
+                    </section>
+                </form>
             </t>
         </xpath>
     </template>
@@ -180,10 +247,10 @@
         <t t-call="portal.portal_layout">
             <t t-call="portal.portal_table">
                 <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                     <section class="bg-white">
                         <div class="container p-4">
                             <div class="form-group row p-3">
-                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                 <label class="col-sm-3 col-form-label">
                                     Admisión
                                 </label>
@@ -236,8 +303,8 @@
                                         <t t-out="line.document"/>
                                     </label>
                                     <div class="col-sm-3 my-auto">
-                                        <input t-att-name="'upload_document_' + str(line.document)"
-                                               t-att-id="'upload_document_' + str(line.id)"
+                                        <input t-att-id="'upload_document_' + str(line.id)"
+                                               t-att-name="'upload_document_' + str(line.document)"
                                                type="file"
                                                class="form-control file"
                                                data-show-upload="true"

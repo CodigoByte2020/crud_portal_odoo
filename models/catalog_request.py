@@ -3,6 +3,7 @@ from odoo import fields, models
 
 class CatalogRequest(models.Model):
     _name = 'catalog.request'
+    _description = 'Lista de solicitudes de trámite'
 
     name = fields.Char(string='Nombre')
     description = fields.Html(string='Descripción')

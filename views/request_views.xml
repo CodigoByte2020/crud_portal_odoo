@@ -22,13 +22,14 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_in_progress" type="object" string="Confirmar" class="btn btn-primary"
-                            attrs="{'invisible': [('state', '!=', 'received')]}"/>
-                    <field name="state" widget="statusbar" statusbar_visible="received,in_progress,finalized"/>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn btn-primary"
+                            attrs="{'invisible': [('hide_status', '=', True)]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="on_hold,accepted,observed"/>
                 </header>
                 <sheet>
                     <group>
                         <group>
+                            <field name="hide_status" invisible="1"/>
                             <field name="op_admission_id"/>
                             <field name="partner_id"/>
                             <field name="batch_id"/>
@@ -48,12 +49,24 @@
                                     <field name="document"/>
                                     <field name="filename"/>
                                     <field name="file" filename="filename"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-info="state == 'on_hold'"
+                                           decoration-success="state == 'accepted'"
+                                           decoration-warning="state == 'observed'"/>
+                                    <button name="action_observe" type="object" string="Observar" class="btn btn-primary"/>
+                                    <button name="action_accept" type="object" string="Aceptar" class="btn btn-primary"/>
+                                    <field name="comment"/>
                                 </tree>
                             </field>
                             <field name="description" nolabel="1" placeholder="Descripción ..."/>
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>

@@ -51,25 +51,69 @@ class CustomerPortal(CustomerPortal):
         }
         return request.render('isep_requests.request_list_view', values)
 
-    @http.route('/my/requests/<int:request_id>', type='http', website=True)
+    @http.route('/my/requests/<int:request_id>', type='http', methods=['GET', 'POST'], website=True)
     def request_form_view(self, request_id, **kwargs):
-        user_id = request.env.uid
-        current_user = request.env['res.users'].sudo().browse(user_id)
-        domain = [
-            ('partner_id', '=', current_user.partner_id.id),
-            ('op_admission_id.state', '=', 'done')
-        ]
         request_model = request.env['request'].sudo()
         current_request = request_model.browse(request_id)
-        request_ids = request_model.search(domain).ids
-        request_index = request_ids.index(request_id)
         values = {
             'current_request': current_request,
-            'page_name': 'request_form_view',
-            'prev_record': request_index != 0 and f'/my/requests/{request_ids[request_index - 1]}',
-            'next_record': request_index < len(request_ids) - 1 and f'/my/requests/{request_ids[request_index + 1]}'
+            'page_name': 'request_form_view'
         }
-        return request.render('isep_requests.request_form_view', values)
+
+        if request.httprequest.method == 'GET':
+            user_id = request.env.uid
+            current_user = request.env['res.users'].sudo().browse(user_id)
+            domain = [
+                ('partner_id', '=', current_user.partner_id.id),
+                ('op_admission_id.state', '=', 'done')
+            ]
+            request_ids = request_model.search(domain).ids
+            request_index = request_ids.index(request_id)
+            values.update({
+                'prev_record': request_index != 0 and f'/my/requests/{request_ids[request_index - 1]}',
+                'next_record': request_index < len(request_ids) - 1 and f'/my/requests/{request_ids[request_index + 1]}'
+            })
+            return request.render('isep_requests.request_form_view', values)
+
+        elif request.httprequest.method == 'POST':
+            print(kwargs)
+            url = self.update_request(kwargs)
+            return request.redirect(url)
+
+    def update_request(self, kwargs):
+        documents_to_update = [{'document_id': int(key.split('update_document_')[1]), 'file': value}
+                               for key, value in kwargs.items() if key.startswith('update_document_')]
+        url = ''
+
+        try:
+            for document in documents_to_update:
+                stream = document['file'].stream
+                read_file = stream.read()
+                request_line = request.env['request.line'].sudo().browse(document['document_id'])
+                request_line.write({
+                    'file': base64.encodebytes(read_file),
+                    'filename': document['file'].filename,
+                    'state': 'on_hold'  # REVISAR QUE SOLO SE ACTUALIZEN LOS DOCUMENTOS QUE SE MODIFICARON
+                })
+                success_message = 'Documento(s) actualizados con éxito'
+                url = f'/my/requests?success_message={success_message}'
+
+        except ValidationError as exception:
+            _logger.error(f'******************* ACTUALIZACIÓN DE SOLICITUD FALLIDA *******************')
+            _logger.error(f'***************** Valores de campos incorrectos. Razón: {exception} *****************')
+
+            error_message = f'Actualización de solicitud fallida: \nValores de campos incorrectos. \nRazón: {exception}'
+            url = f'/my/requests?error_message={error_message}'
+
+        except Exception as exception:
+            _logger.error(f'******************* ACTUALIZACIÓN DE SOLICITUD FALLIDA *******************')
+            _logger.error(f'****** El archivo subido no es válido o es demasiado grande. Razón: {exception} ******')
+
+            error_message = f'Actualización de solicitud fallida: \nEl archivo subido no es válido o es demasiado grande. \nRazón: {exception}'
+            url = f'/my/requests?error_message={error_message}'
+
+        finally:
+            return url
 
     @http.route('/my/requests/catalogs', type='http', methods=['GET'], auth='public', website=True)
     def catalog_form_view(self, **kwargs):
@@ -170,13 +214,17 @@ class CustomerPortal(CustomerPortal):
             url = f'/my/requests?success_message={success_message}'
 
         except ValidationError as exception:
+            _logger.error(f'******************* CREACIÓN DE SOLICITUD FALLIDA *******************')
             _logger.error(f'******************* Valores de campos incorrectos. Razón: {exception} *******************')
-            error_message = f'Valores de campos incorrectos. Razón: {exception}'
+
+            error_message = f'Creación de solicitud fallida: \nValores de campos incorrectos. \nRazón: {exception}'
             url = f'/my/requests?error_message={error_message}'
 
         except Exception as exception:
+            _logger.error(f'******************* CREACIÓN DE SOLICITUD FALLIDA *******************')
             _logger.error(f'******** El archivo subido no es válido o es demasiado grande. Razón: {exception} ********')
-            error_message = f'El archivo subido no es válido o es demasiado grande. Razón: {exception}'
+
+            error_message = f'Creación de solicitud fallida: \nEl archivo subido no es válido o es demasiado grande. \nRazón: {exception}'
             url = f'/my/requests?error_message={error_message}'
 
         finally:

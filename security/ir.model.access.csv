@@ -4,4 +4,4 @@ isep_requests.portal_access_request,portal_access_request,isep_requests.model_re
 isep_requests.access_request_line,access_request_line,isep_requests.model_request_line,base.group_user,1,1,1,1
 isep_requests.access_catalog_request,access_catalog_request,isep_requests.model_catalog_request,base.group_user,1,1,1,1
 isep_requests.access_catalog_request_line,access_catalog_request_line,isep_requests.model_catalog_request_line,base.group_user,1,1,1,1
-
+isep_requests.access_observe_document_wizard,access_observe_document_wizard,isep_requests.model_observe_document_wizard,base.group_user,1,1,1,1

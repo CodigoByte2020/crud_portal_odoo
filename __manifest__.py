@@ -15,7 +15,8 @@
         'views/isep_requests_menus.xml',
         'views/request_views.xml',
         'views/catalog_request_views.xml',
-        'views/portal_templates.xml'
+        'views/portal_templates.xml',
+        'wizards/observe_document_views.xml'
     ],
     'installable': True,
 }
