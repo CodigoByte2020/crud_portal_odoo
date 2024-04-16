@@ -81,8 +81,8 @@
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                     <section class="bg-white">
                         <div class="container">
-    <!--                    <div class="row">-->
-                            <div t-if="current_request.request_line_ids.filtered(lambda x: x.state == 'observed')" class="row m-2">
+                            <div t-if="current_request.request_line_ids.filtered(lambda x: x.state == 'observed')"
+                                 class="row m-2">
                                 <div class="col-lg-9"/>
                                 <div class="col-lg-3">
                                     <button class="btn btn-primary">Actualizar adjunto(s)</button>
@@ -150,10 +150,12 @@
                                                     <th scope="col">ID</th>
                                                     <th scope="col">Documento</th>
                                                     <th scope="col">Nombre de archivo</th>
-<!--                                                    <th scope="col">Archivo</th>-->
                                                     <th scope="col">Estado</th>
                                                     <th scope="col">Comentario</th>
-                                                    <th scope="col">Actualizar archivo</th>
+                                                    <th t-if="current_request.request_line_ids.filtered(lambda x: x.state == 'observed')"
+                                                        scope="col">
+                                                        Actualizar archivo
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -163,13 +165,14 @@
                                                         <td><t t-out="line.document"/></td>
                                                         <td><t t-out="line.filename"/></td>
                                                         <td>
-                                                            <t t-set="state" t-value="dict(line._fields['state'].selection).get(line.state, '')"/>
-                                                            <span t-att-class="'rounded-pill text-white p-2 %s' % (state == 'En espera' and 'bg-info' or state == 'Aceptado' and 'bg-success' or state == 'Observado' and 'bg-warning' or '')" t-esc="state"/>
+                                                            <t t-set="state"
+                                                               t-value="dict(line._fields['state'].selection).get(line.state, '')"/>
+                                                            <span t-att-class="'rounded-pill text-white p-2 %s' % (state == 'En espera' and 'bg-info' or state == 'Aceptado' and 'bg-success' or state == 'Observado' and 'bg-warning' or '')"
+                                                                  t-esc="state"/>
                                                         </td>
                                                         <td><t t-out="line.comment"/></td>
-                                                        <td>
-                                                            <input t-if="line.state == 'observed'"
-                                                                   t-att-id="'update_document_' + str(line.id)"
+                                                        <td t-if="line.state == 'observed'">
+                                                            <input t-att-id="'update_document_' + str(line.id)"
                                                                    t-att-name="'update_document_' + str(line.id)"
                                                                    type="file"
                                                                    class="form-control file"
@@ -184,7 +187,6 @@
                                     </div>
                                 </div>
                             </div>
-    <!--                    </div>-->
                         </div>
                         <div class="container px-5">
                             <t t-call="portal.message_thread">

@@ -81,22 +81,23 @@ class CustomerPortal(CustomerPortal):
             return request.redirect(url)
 
     def update_request(self, kwargs):
+        url = ''
         documents_to_update = [{'document_id': int(key.split('update_document_')[1]), 'file': value}
                                for key, value in kwargs.items() if key.startswith('update_document_')]
-        url = ''
-
         try:
             for document in documents_to_update:
                 stream = document['file'].stream
                 read_file = stream.read()
                 request_line = request.env['request.line'].sudo().browse(document['document_id'])
-                request_line.write({
-                    'file': base64.encodebytes(read_file),
-                    'filename': document['file'].filename,
-                    'state': 'on_hold'  # REVISAR QUE SOLO SE ACTUALIZEN LOS DOCUMENTOS QUE SE MODIFICARON
-                })
-                success_message = 'Documento(s) actualizados con éxito'
-                url = f'/my/requests?success_message={success_message}'
+                decoded_file = base64.encodebytes(read_file)
+                if decoded_file:
+                    request_line.write({
+                        'file': decoded_file,
+                        'filename': document['file'].filename,
+                        'state': 'on_hold'
+                    })
+            success_message = 'Documento(s) actualizados con éxito'
+            url = f'/my/requests?success_message={success_message}'
 
         except ValidationError as exception:
             _logger.error(f'******************* ACTUALIZACIÓN DE SOLICITUD FALLIDA *******************')
@@ -109,7 +110,8 @@ class CustomerPortal(CustomerPortal):
             _logger.error(f'******************* ACTUALIZACIÓN DE SOLICITUD FALLIDA *******************')
             _logger.error(f'****** El archivo subido no es válido o es demasiado grande. Razón: {exception} ******')
 
-            error_message = f'Actualización de solicitud fallida: \nEl archivo subido no es válido o es demasiado grande. \nRazón: {exception}'
+            error_message = f'Actualización de solicitud fallida: \nEl archivo subido no es válido o es demasiado ' \
+                            f'grande. \nRazón: {exception}'
             url = f'/my/requests?error_message={error_message}'
 
         finally:
@@ -224,7 +226,8 @@ class CustomerPortal(CustomerPortal):
             _logger.error(f'******************* CREACIÓN DE SOLICITUD FALLIDA *******************')
             _logger.error(f'******** El archivo subido no es válido o es demasiado grande. Razón: {exception} ********')
 
-            error_message = f'Creación de solicitud fallida: \nEl archivo subido no es válido o es demasiado grande. \nRazón: {exception}'
+            error_message = f'Creación de solicitud fallida: \nEl archivo subido no es válido o es demasiado grande. ' \
+                            f'\nRazón: {exception}'
             url = f'/my/requests?error_message={error_message}'
 
         finally:

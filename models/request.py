@@ -24,16 +24,6 @@ class Request(models.Model):
     state = fields.Selection(selection=STATE_SELECTION, default='on_hold', string='Estado', compute='_compute_state',
                              store=True, tracking=True)
     hide_status = fields.Boolean(default=False)
-    # comment = fields.Text(string='Comentario', compute='_compute_comment', tracking=True, store=True)
-
-    # @api.depends('request_line_ids.comment')
-    # def _compute_comment(self):
-    #     for request in self:
-    #         comment = ''
-    #         if request.request_line_ids:
-    #             for request_line in request.request_line_ids:
-    #                 comment = request_line.comment
-    #         request.write({'comment': comment})
 
     @api.depends('request_line_ids.state')
     def _compute_state(self):
