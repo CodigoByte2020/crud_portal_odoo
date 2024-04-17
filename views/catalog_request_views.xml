@@ -30,7 +30,6 @@
                             <field name="catalog_request_line_ids" context="{'catalog_request_id': id}">
                                 <tree editable="bottom">
                                     <field name="catalog_request_id" invisible="1"/>
-                                    <field name="id"/>
                                     <field name="document"/>
                                 </tree>
                             </field>

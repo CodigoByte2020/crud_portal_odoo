@@ -76,11 +76,17 @@ class CustomerPortal(CustomerPortal):
             return request.render('isep_requests.request_form_view', values)
 
         elif request.httprequest.method == 'POST':
-            print(kwargs)
             url = self.update_request(kwargs)
             return request.redirect(url)
 
     def update_request(self, kwargs):
+        '''
+            Update attachments for each document.
+            :param kwargs: Arguments to update.
+            :type kwargs: Dictionary.
+            :return: A string that represents the url to be redirected.
+            :rtype: str
+        '''
         url = ''
         documents_to_update = [{'document_id': int(key.split('update_document_')[1]), 'file': value}
                                for key, value in kwargs.items() if key.startswith('update_document_')]
@@ -162,6 +168,7 @@ class CustomerPortal(CustomerPortal):
                     'course_id': admission.course_id,
                     'application_number': admission.application_number
                 })
+            return request.render('isep_requests.new_request_form_view', values)
 
         elif request.httprequest.method == 'POST':
             values_request = {}
@@ -177,9 +184,14 @@ class CustomerPortal(CustomerPortal):
             url = self.create_request(kwargs)
             return request.redirect(url)
 
-        return request.render('isep_requests.new_request_form_view', values)
-
     def create_request(self, kwargs):
+        '''
+            Create new request with their respective documents.
+            :param kwargs: Arguments to create the new request.
+            :type kwargs: Dictionary.
+            :return: A string that represents the url to be redirected.
+            :rtype: str
+        '''
         request_model = request.env['request'].sudo()
         op_admission_model = request.env['op.admission'].sudo()
         request_line_ids_documents = [value for key, value in kwargs.items() if key.startswith('upload_document_')]

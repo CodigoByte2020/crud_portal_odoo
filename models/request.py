@@ -29,9 +29,7 @@ class Request(models.Model):
     def _compute_state(self):
         for request in self:
             request_line_status = request.request_line_ids.mapped(lambda x: x.state)
-            if all(state == 'on_hold' for state in request_line_status):
-                request.write({'state': 'on_hold'})
-            elif all(state == 'accepted' for state in request_line_status):
+            if all(state == 'accepted' for state in request_line_status):
                 request.write({'state': 'accepted'})
             elif any(state == 'observed' for state in request_line_status):
                 request.write({'state': 'observed'})

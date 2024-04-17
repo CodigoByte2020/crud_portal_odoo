@@ -9,15 +9,12 @@
                     <h3 class="text-danger">
                         IMPORTANTE:
                         <br/>
-                        Agrega la razón por la cual está observando este documento
+                        Agregar la razón por la cual está observando este documento.
                     </h3>
-                    <br/>
-                    <field name="id"/>
-                    <field name="request_line_id"/>
-                    <field name="comment"/>
+                    <field name="comment" placeholder="Comentario"/>
                 </sheet>
                 <footer>
-                    <button name="prueba" string="Prueba" type="object" class="btn-primary"/>
+                    <button name="add_comment" string="Aceptar" type="object" class="btn-primary"/>
                     <button string="Cancelar" class="oe_link" special="cancel"/>
                 </footer>
             </form>

@@ -8,7 +8,12 @@ class ObserveDocumentWizard(models.TransientModel):
     request_line_id = fields.Many2one(comodel_name='request.line')
     comment = fields.Text(string='Comentario', required=True)
 
-    def prueba(self):
+    def add_comment(self):
+        '''
+            Creates a record in mail.message with the comment added in the wizard.
+            Modify the state of request_line_id to observed.
+            :return: None
+        '''
         request_id = self.request_line_id.request_id
         body = '''
             <p>Observación en adjunto: <strong>{}</strong></p>
